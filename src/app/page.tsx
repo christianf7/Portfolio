@@ -14,9 +14,7 @@ import {
     Github,
     Linkedin,
     Mail,
-    ExternalLink,
     Code2,
-    Palette,
     Zap,
     MapPin,
     Calendar,
@@ -89,7 +87,7 @@ const scrollToSection = (sectionId: string) => {
 
 // Navigation component
 const Navigation = () => {
-    const [activeSection, setActiveSection] = useState("hero");
+    const [activeSection] = useState("hero");
 
     const navItems = [
         { id: "hero", label: "Home" },
@@ -284,7 +282,7 @@ const AboutSection = () => {
                         About <span className="bg-gradient-to-r from-teal-400 to-emerald-500 bg-clip-text text-transparent">Me</span>
                     </h2>
                     <p className="text-xl text-white/60 max-w-3xl mx-auto">
-                        I'm a passionate developer who loves creating beautiful, functional, and user-friendly applications
+                        I&apos;m a passionate developer who loves creating beautiful, functional, and user-friendly applications
                     </p>
                 </motion.div>
 
@@ -768,10 +766,10 @@ const ContactSection = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-4xl md:text-6xl font-bold text-white mb-4">
-                        Let's <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Connect</span>
+                        Let&apos;s <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Connect</span>
                     </h2>
                     <p className="text-xl text-white/60 max-w-3xl mx-auto">
-                        I'm always interested in new opportunities and interesting projects
+                        I&apos;m always interested in new opportunities and interesting projects
                     </p>
                 </motion.div>
 

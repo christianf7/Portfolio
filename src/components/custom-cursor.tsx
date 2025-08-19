@@ -19,7 +19,7 @@ export function CustomCursor() {
 
             // Check if hovering over clickable element
             const target = e.target as HTMLElement;
-            const isClickable = target?.closest('button, a, [role="button"], [data-clickable], .cursor-pointer') ||
+            const isClickable = target?.closest('button, a, [role="button"], [data-clickable], .cursor-pointer') ??
                 window.getComputedStyle(target).cursor === 'pointer';
             setIsPointer(!!isClickable);
         };
