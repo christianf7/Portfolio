@@ -3,7 +3,6 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { TRPCReactProvider } from "~/trpc/react";
 import { CustomCursor } from "~/components/custom-cursor";
 
 export const metadata: Metadata = {
@@ -24,7 +23,7 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable} overflow-x-hidden`}>
       <body className="bg-slate-900 min-h-screen overflow-x-hidden">
         <CustomCursor />
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        {children}
       </body>
     </html>
   );
