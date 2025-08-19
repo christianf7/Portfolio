@@ -25,6 +25,8 @@ export default function RootLayout({
         <CustomCursor />
         {children}
       </body>
+
+      <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "9670fd56ca234706ae8e661de7b35e2f"}'></script>
     </html>
   );
 }
