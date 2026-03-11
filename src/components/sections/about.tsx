@@ -13,7 +13,7 @@ export function AboutSection() {
     const [copied, setCopied] = useState(false);
 
     const copyEmail = () => {
-        navigator.clipboard.writeText("christian@chrisfitz.dev");
+        void navigator.clipboard.writeText("christian@chrisfitz.dev");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -36,7 +36,7 @@ export function AboutSection() {
                                 I build <GlitchText className="text-sky-400">products</GlitchText> that people actually use.
                             </h2>
                             <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl">
-                                I'm a full-stack developer currently studying a double degree in Computer Science and Commerce at Monash University. I enjoy building scalable web applications that solve real-world problems, with a strong focus on clean code, thoughtful design, and practical, reliable solutions. 
+                                I&apos;m a full-stack developer currently studying a double degree in Computer Science and Commerce at Monash University. I enjoy building scalable web applications that solve real-world problems, with a strong focus on clean code, thoughtful design, and practical, reliable solutions.
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-2 mt-6">

@@ -326,23 +326,24 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                 </DialogContent>
             </Dialog>
 
-            <AnimatePresence>
-                {isFullScreen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center"
-                        onClick={closeFullScreen}
-                    >
-                        <div className="relative w-full h-full flex items-center justify-center" style={{ zIndex: 1 }}>
+            {typeof document !== "undefined" && createPortal(
+                <AnimatePresence>
+                    {isFullScreen && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 bg-black/95 flex items-center justify-center"
+                            style={{ zIndex: 99999 }}
+                            onClick={closeFullScreen}
+                        >
                             <AnimatePresence mode="wait">
                                 <motion.img
                                     key={currentImageIndex}
                                     src={`/${project.images[currentImageIndex]}`}
                                     alt={`${project.title} screenshot ${currentImageIndex + 1}`}
-                                    className="max-w-[90vw] max-h-[90vh] object-contain"
+                                    className="max-w-[85vw] max-h-[85vh] object-contain"
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
@@ -353,7 +354,7 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); closeFullScreen(); }}
-                                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
                             >
                                 <X className="w-6 h-6" />
                             </button>
@@ -362,14 +363,13 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                 <>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
                                     >
                                         <ChevronLeft className="w-6 h-6" />
                                     </button>
                                     <button
-                                        style={{ zIndex: 100 }}
                                         onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
                                     >
                                         <ChevronRight className="w-6 h-6" />
                                     </button>
@@ -378,10 +378,11 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                     </div>
                                 </>
                             )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     );
 }
