@@ -60,11 +60,8 @@ interface ProjectModalProps {
 export function ProjectModal({ project, children }: ProjectModalProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [cursorZone, setCursorZone] = useState<'left' | 'middle' | 'right' | null>(null);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isMobile, setIsMobile] = useState(false);
 
-    // Detect mobile device
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
@@ -88,10 +85,8 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
 
     const closeFullScreen = () => {
         setIsFullScreen(false);
-        setCursorZone(null);
     };
 
-    // Handle escape key to close fullscreen only (prevent modal close)
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isFullScreen) {
@@ -104,9 +99,7 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
         };
 
         if (isFullScreen) {
-            // Use capture phase with highest priority
             document.addEventListener('keydown', handleEscape, { capture: true, passive: false });
-            // Also add to window for extra safety
             window.addEventListener('keydown', handleEscape, { capture: true, passive: false });
         }
 
@@ -116,7 +109,6 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
         };
     }, [isFullScreen]);
 
-    // Touch/swipe support for mobile
     useEffect(() => {
         if (!isFullScreen || !isMobile) return;
 
@@ -138,17 +130,13 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
             const diffX = touchStartX - touchEndX;
             const diffY = touchStartY - touchEndY;
 
-            // Only handle horizontal swipes (ignore vertical)
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
                 if (diffX > 0 && project.images.length > 1) {
-                    // Swiped left, go to next image
                     nextImage();
                 } else if (diffX < 0 && project.images.length > 1) {
-                    // Swiped right, go to previous image
                     prevImage();
                 }
             } else if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) {
-                // Tap (not swipe) - close fullscreen
                 closeFullScreen();
             }
 
@@ -164,148 +152,6 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
             document.removeEventListener('touchend', handleTouchEnd);
         };
     }, [isFullScreen, isMobile, project.images.length]);
-
-    // Mouse tracking and cursor management for fullscreen (desktop only)
-    useEffect(() => {
-        if (!isFullScreen || isMobile) return;
-
-        // Hide all cursors aggressively
-        const style = document.createElement('style');
-        style.id = 'fullscreen-cursor-hide';
-        style.innerHTML = `
-            * { cursor: none !important; }
-            body { cursor: none !important; }
-            html { cursor: none !important; }
-        `;
-        document.head.appendChild(style);
-
-        const handleMouseMove = (e: MouseEvent) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-
-            // Calculate zones based on viewport (excluding close button area)
-            const width = window.innerWidth;
-            const leftThird = width / 3;
-            const rightThird = (width * 2) / 3;
-            const closeButtonArea = 80;
-
-            // Don't set zone if in close button area
-            if (e.clientX > width - closeButtonArea && e.clientY < closeButtonArea) {
-                setCursorZone(null);
-                return;
-            }
-
-            let zone: 'left' | 'middle' | 'right';
-            if (e.clientX < leftThird) {
-                zone = 'left';
-            } else if (e.clientX > rightThird) {
-                zone = 'right';
-            } else {
-                zone = 'middle';
-            }
-
-            setCursorZone(zone);
-        };
-
-        const handleClick = (e: MouseEvent) => {
-            // Don't handle clicks on buttons or interactive elements
-            const target = e.target as HTMLElement;
-            if (target.closest('button') || target.closest('[data-clickable]')) {
-                return;
-            }
-
-            // Check if click is in close button area (top-right corner)
-            const closeButtonArea = 80; // 80px area around close button
-            if (e.clientX > window.innerWidth - closeButtonArea && e.clientY < closeButtonArea) {
-                return; // Ignore clicks in close button area
-            }
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            const width = window.innerWidth;
-            const leftThird = width / 3;
-            const rightThird = (width * 2) / 3;
-
-            let zone: 'left' | 'middle' | 'right';
-            if (e.clientX < leftThird) {
-                zone = 'left';
-            } else if (e.clientX > rightThird) {
-                zone = 'right';
-            } else {
-                zone = 'middle';
-            }
-
-            if (zone === 'left' && project.images.length > 1) {
-                prevImage();
-            } else if (zone === 'right' && project.images.length > 1) {
-                nextImage();
-            } else {
-                closeFullScreen();
-            }
-        };
-
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('click', handleClick, true);
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('click', handleClick, true);
-            // Restore cursor
-            const styleEl = document.getElementById('fullscreen-cursor-hide');
-            if (styleEl) styleEl.remove();
-        };
-    }, [isFullScreen, project.images.length]);
-
-    // Custom cursor component (desktop only)
-    const CustomCursor = () => {
-        if (!isFullScreen || !cursorZone || isMobile) return null;
-
-        const getCursorIcon = () => {
-            switch (cursorZone) {
-                case 'left':
-                    return project.images.length > 1 ? (
-                        <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-lg">
-                            <ChevronLeft className="w-5 h-5 text-black" />
-                        </div>
-                    ) : (
-                        <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-lg">
-                            <X className="w-5 h-5 text-black" />
-                        </div>
-                    );
-                case 'right':
-                    return project.images.length > 1 ? (
-                        <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-lg">
-                            <ChevronRight className="w-5 h-5 text-black" />
-                        </div>
-                    ) : (
-                        <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-lg">
-                            <X className="w-5 h-5 text-black" />
-                        </div>
-                    );
-                case 'middle':
-                    return (
-                        <div className="w-8 h-8 bg-white border-2 border-black rounded-full flex items-center justify-center shadow-lg">
-                            <X className="w-5 h-5 text-black" />
-                        </div>
-                    );
-                default:
-                    return null;
-            }
-        };
-
-        return (
-            <div
-                className="fixed pointer-events-none z-[1001] transition-all duration-100"
-                style={{
-                    left: mousePosition.x,
-                    top: mousePosition.y,
-                    transform: 'translate(-50%, -50%)',
-                }}
-            >
-                {getCursorIcon()}
-            </div>
-        );
-    };
 
     return (
         <>
@@ -353,7 +199,6 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                         </DialogHeader>
 
                         <div className="mt-6 space-y-6">
-                            {/* Image Carousel using shadcn */}
                             <Card className="bg-slate-800/50 border-slate-700 overflow-hidden">
                                 <CardContent className="p-0">
                                     <Carousel className="w-full">
@@ -362,7 +207,7 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                                 <CarouselItem key={index}>
                                                     <div className="relative h-48 sm:h-64 md:h-80 lg:h-96">
                                                         <motion.div
-                                                            className="absolute inset-0 group/image"
+                                                            className="absolute inset-0 group/image cursor-zoom-in"
                                                             onClick={() => {
                                                                 setCurrentImageIndex(index);
                                                                 openFullScreen();
@@ -377,12 +222,11 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                                                     target.style.display = 'none';
                                                                     const parent = target.parentElement;
                                                                     if (parent) {
-                                                                        parent.classList.add('bg-gradient-to-br', 'from-teal-500/20', 'to-emerald-500/20', 'flex', 'items-center', 'justify-center');
+                                                                        parent.classList.add('bg-gradient-to-br', 'from-sky-500/20', 'to-blue-500/20', 'flex', 'items-center', 'justify-center');
                                                                         parent.innerHTML = '<div class="text-white/30 text-center"><div class="text-6xl mb-2">🖼️</div><p>Project Screenshot ' + (index + 1) + '</p></div>';
                                                                     }
                                                                 }}
                                                             />
-                                                            {/* Zoom indicator overlay */}
                                                             <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
                                                                 <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 bg-white/10 backdrop-blur-sm rounded-full p-3">
                                                                     <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,13 +249,11 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                 </CardContent>
                             </Card>
 
-                            {/* Project Details Grid - Fixed to 2 columns */}
                             <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                                {/* Project Info */}
                                 <Card className="bg-slate-800/50 border-slate-700">
                                     <CardContent className="p-4 sm:p-6 space-y-4">
                                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                            <Calendar className="w-5 h-5 text-teal-400" />
+                                            <Calendar className="w-5 h-5 text-sky-400" />
                                             Project Details
                                         </h3>
                                         <div className="space-y-3 text-white/70">
@@ -433,7 +275,7 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                             <h4 className="text-white font-medium mb-2">Technologies Used:</h4>
                                             <div className="flex gap-2 flex-wrap">
                                                 {project.tech.map((tech) => (
-                                                    <Badge key={tech} variant="outline" className="border-teal-500/30 text-teal-300">
+                                                    <Badge key={tech} variant="outline" className="border-sky-500/30 text-sky-300">
                                                         {tech}
                                                     </Badge>
                                                 ))}
@@ -442,7 +284,6 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                     </CardContent>
                                 </Card>
 
-                                {/* Key Features */}
                                 <Card className="bg-slate-800/50 border-slate-700">
                                     <CardContent className="p-4 sm:p-6 space-y-4">
                                         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -461,7 +302,6 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                 </Card>
                             </div>
 
-                            {/* Challenges & Outcomes */}
                             <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
                                 <Card className="bg-slate-800/50 border-slate-700">
                                     <CardContent className="p-4 sm:p-6 space-y-4">
@@ -502,51 +342,72 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                 </DialogContent>
             </Dialog>
 
-            {/* Custom Cursor */}
-            <CustomCursor />
+            {/* Fullscreen Image Viewer */}
+            <AnimatePresence>
+                {isFullScreen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center"
+                        onClick={closeFullScreen}
+                    >
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <AnimatePresence mode="wait">
+                                <motion.img
+                                    key={currentImageIndex}
+                                    src={`/${project.images[currentImageIndex]}`}
+                                    alt={`${project.title} screenshot ${currentImageIndex + 1}`}
+                                    className="max-w-[90vw] max-h-[90vh] object-contain"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.25 }}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </AnimatePresence>
 
-            {/* Fullscreen Image Modal */}
-            {isFullScreen && (
-                <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center">
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {/* Main Image */}
-                        <AnimatePresence mode="wait">
-                            <motion.img
-                                key={currentImageIndex}
-                                src={`/${project.images[currentImageIndex]}`}
-                                alt={`${project.title} screenshot ${currentImageIndex + 1}`}
-                                className="max-w-[90vw] max-h-[90vh] object-contain"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 0.3 }}
-                            />
-                        </AnimatePresence>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    closeFullScreen();
+                                }}
+                                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
 
-                        {/* Close button */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                closeFullScreen();
-                            }}
-                            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001]"
-                            data-clickable="true"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
+                            {project.images.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            prevImage();
+                                        }}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                                    >
+                                        <ChevronLeft className="w-6 h-6" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            nextImage();
+                                        }}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 z-[1001] cursor-pointer"
+                                    >
+                                        <ChevronRight className="w-6 h-6" />
+                                    </button>
 
-                        {/* Image counter */}
-                        {project.images.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
-                                {currentImageIndex + 1} / {project.images.length}
-                            </div>
-                        )}
-
-
-                    </div>
-                </div>
-            )}
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+                                        {currentImageIndex + 1} / {project.images.length}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

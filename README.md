@@ -1,29 +1,56 @@
-# Create T3 App
+# chrisfitz.dev
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+My personal portfolio site. Shows off what I've built and how to get in touch.
 
-## What's next? How do I make an app with this?
+## Tech
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion
+- Three.js / React Three Fiber
+- shadcn/ui
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Run it locally
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+```bash
+# Install deps
+bun install
 
-## Learn More
+# Dev server
+bun dev
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+# Build
+bun run build
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Structure
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── sections/         # Page sections (hero, about, projects, etc.)
+│   ├── ui/               # shadcn components
+│   ├── effects.tsx        # Reusable animation primitives
+│   ├── navigation.tsx     # Top nav + floating dock
+│   ├── loading-screen.tsx # Intro loading animation
+│   ├── blob-background.tsx
+│   ├── hero-blobs.tsx     # Three.js 3D blob scene
+│   └── project-modal.tsx  # Project detail modal
+└── styles/
+    └── globals.css
+```
 
-## How do I deploy this?
+## Contact
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Email: christian@chrisfitz.dev
+- GitHub: [@christianf7](https://github.com/christianf7)
+- LinkedIn: [/in/christianf7](https://linkedin.com/in/christianf7)
+
+---
+
+Made by Christian Fitzgerald
