@@ -38,16 +38,25 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
                     </span>
                 </motion.div>
 
-                <div className="mb-8 overflow-hidden">
+                <div className="mb-8">
                     <h1 className="text-[clamp(2.5rem,10vw,10rem)] font-bold leading-[0.85] tracking-tighter">
                         {isLoaded && (
                             <>
                                 <SplitTextReveal text="CHRISTIAN" className="text-white block" delay={baseDelay + 0.1} />
-                                <SplitTextReveal
-                                    text="FITZGERALD"
-                                    className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-400 to-cyan-300 block"
-                                    delay={baseDelay + 0.2}
-                                />
+                                <span className="block overflow-hidden">
+                                    <motion.span
+                                        className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-400 to-cyan-300 block"
+                                        initial={{ y: "100%" }}
+                                        animate={{ y: 0 }}
+                                        transition={{
+                                            duration: 0.6,
+                                            delay: baseDelay + 0.25,
+                                            ease: [0.33, 1, 0.68, 1],
+                                        }}
+                                    >
+                                        FITZGERALD
+                                    </motion.span>
+                                </span>
                             </>
                         )}
                     </h1>
@@ -57,9 +66,9 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isLoaded ? { opacity: 1, y: 0 } : {}}
                     transition={{ delay: baseDelay + 0.5, duration: 0.6 }}
-                    className="max-w-xl mb-8 sm:mb-12"
+                    className="mb-8 sm:mb-12"
                 >
-                    <p className="text-lg sm:text-xl md:text-2xl text-zinc-300 leading-relaxed">
+                    <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-zinc-300 leading-relaxed max-w-[90vw] sm:max-w-xl">
                         Full-stack developer building things that work.
                         <br />
                         <span className="text-zinc-400">Computer Science & Commerce @ Monash University.</span>

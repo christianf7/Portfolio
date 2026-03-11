@@ -81,13 +81,6 @@ export function AboutSection() {
                             </div>
                         </div>
                     </BentoItem>
-
-                    <BentoItem colSpan={2} rowSpan={1} className="p-6 bg-gradient-to-br from-sky-500/20 to-blue-500/20 border-sky-500/20 col-span-1 sm:col-auto">
-                        <div className="h-full flex flex-col justify-between gap-3">
-                            <span className="text-sky-300 text-xs font-mono">CURRENTLY</span>
-                            <p className="text-white font-semibold">Building Consol8 - an Inventory Management Solution</p>
-                        </div>
-                    </BentoItem>
                 </div>
             </div>
         </section>
