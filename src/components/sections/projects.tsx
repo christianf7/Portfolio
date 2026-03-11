@@ -44,7 +44,7 @@ const PROJECTS: ProjectData[] = [
         outcomes: ["Improved visibility", "Scalable foundation"],
     },
     {
-        title: "El Arquero Landing",
+        title: "El*Arquero Landing",
         description: "Coming soon page with email capture",
         longDescription:
             "A sleek coming soon landing page built to introduce El Arquero Tequila, featuring email capture and modern design.",
