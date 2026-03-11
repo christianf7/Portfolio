@@ -132,8 +132,9 @@ export const SpotlightCard = forwardRef<
         children: React.ReactNode;
         className?: string;
         glowColor?: string;
-    } & React.HTMLAttributes<HTMLDivElement>
->(function SpotlightCard({ children, className = "", glowColor = "rgba(56,189,248,0.5)", ...rest }, externalRef) {
+        onClick?: React.MouseEventHandler<HTMLDivElement>;
+    }
+>(function SpotlightCard({ children, className = "", glowColor = "rgba(56,189,248,0.5)", onClick }, externalRef) {
     const internalRef = useRef<HTMLDivElement>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
@@ -158,7 +159,7 @@ export const SpotlightCard = forwardRef<
             onMouseLeave={() => setIsHovering(false)}
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
-            {...rest}
+            onClick={onClick}
         >
             {isHovering && (
                 <div

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Dialog,
@@ -69,38 +70,35 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const nextImage = () => {
+    const nextImage = useCallback(() => {
         setCurrentImageIndex((prev) => (prev + 1) % project.images.length);
-    };
+    }, [project.images.length]);
 
-    const prevImage = () => {
+    const prevImage = useCallback(() => {
         setCurrentImageIndex((prev) => (prev - 1 + project.images.length) % project.images.length);
-    };
+    }, [project.images.length]);
 
-    const openFullScreen = () => setIsFullScreen(true);
-    const closeFullScreen = () => setIsFullScreen(false);
+    const openFullScreen = useCallback(() => setIsFullScreen(true), []);
+    const closeFullScreen = useCallback(() => setIsFullScreen(false), []);
 
     useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isFullScreen) {
+        if (!isFullScreen) return;
+
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
                 e.stopPropagation();
                 e.preventDefault();
-                e.stopImmediatePropagation();
                 closeFullScreen();
-                return false;
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                prevImage();
             }
         };
 
-        if (isFullScreen) {
-            document.addEventListener('keydown', handleEscape, { capture: true, passive: false });
-            window.addEventListener('keydown', handleEscape, { capture: true, passive: false });
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscape, true);
-            window.removeEventListener('keydown', handleEscape, true);
-        };
-    }, [isFullScreen]);
+        window.addEventListener('keydown', handleKey, { capture: true });
+        return () => window.removeEventListener('keydown', handleKey, true);
+    }, [isFullScreen, closeFullScreen, nextImage, prevImage]);
 
     useEffect(() => {
         if (!isFullScreen || !isMobile) return;
@@ -124,8 +122,8 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
             const diffY = touchStartY - touchEndY;
 
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-                if (diffX > 0 && project.images.length > 1) nextImage();
-                else if (diffX < 0 && project.images.length > 1) prevImage();
+                if (diffX > 0) nextImage();
+                else prevImage();
             } else if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) {
                 closeFullScreen();
             }
@@ -141,7 +139,7 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
             document.removeEventListener('touchstart', handleTouchStart);
             document.removeEventListener('touchend', handleTouchEnd);
         };
-    }, [isFullScreen, isMobile, project.images.length]);
+    }, [isFullScreen, isMobile, nextImage, prevImage, closeFullScreen]);
 
     return (
         <>
