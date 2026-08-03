@@ -71,7 +71,7 @@ const PROJECTS: ProjectData[] = [
         tech: ["WordPress", "PHP", "REST API", "JavaScript", "CSS", "Responsive Design"],
         tech_short: ["WordPress", "Headless CMS", "PHP", "REST API"],
         visit: "https://pervocemvita.org",
-        hero_image: "pvv/PVV.jpg",
+        hero_image: "pvv/pvv.jpg",
         images: ["pvv/PVV.jpg", "pvv/pvv-00001.png", "pvv/pvv-00002.png", "pvv/pvv-00003.png", "pvv/pvv-00004.png", "pvv/pvv-00005.png", "pvv/pvv-00006.png", "pvv/pvv-00007.png"],
         timeline: "1 month",
         teamSize: "Solo project",
