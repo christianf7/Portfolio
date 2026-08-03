@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogHeader,
@@ -517,6 +518,9 @@ export function ProjectModal({ project, children }: ProjectModalProps) {
                                         Demo
                                     </a>
                                     )}
+                                    <DialogClose className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-zinc-700/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-all cursor-pointer">
+                                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    </DialogClose>
                                 </div>
                             </div>
                             <DialogDescription className="text-xs sm:text-base text-zinc-500 mt-1.5 sm:mt-2 leading-relaxed line-clamp-3 sm:line-clamp-none">
