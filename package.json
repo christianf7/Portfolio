@@ -50,7 +50,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/three": "^0.183.1",
-    "eslint": "^9.39.5",
+    "eslint": "^10.8.0",
     "eslint-config-next": "^15.5.22",
     "postcss": "^8.5.25",
     "prettier": "^3.9.6",
