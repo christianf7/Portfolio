@@ -47,7 +47,7 @@ export function ScrambleText({ text, className = "" }: { text: string; className
     );
 }
 
-export function Magnetic({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function Magnetic({ children, className = "", strength = 0.4 }: { children: React.ReactNode; className?: string; strength?: number }) {
     const ref = useRef<HTMLDivElement>(null);
     const x = useMotionValue(0);
     const y = useMotionValue(0);
@@ -61,8 +61,8 @@ export function Magnetic({ children, className = "" }: { children: React.ReactNo
         const rect = ref.current.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        x.set((e.clientX - centerX) * 0.4);
-        y.set((e.clientY - centerY) * 0.4);
+        x.set((e.clientX - centerX) * strength);
+        y.set((e.clientY - centerY) * strength);
     };
 
     const handleMouseLeave = () => {
@@ -149,9 +149,9 @@ export const SpotlightCard = forwardRef<
     return (
         <motion.div
             ref={(node) => {
-                (internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+                internalRef.current = node;
                 if (typeof externalRef === "function") externalRef(node);
-                else if (externalRef) (externalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+                else if (externalRef) externalRef.current = node;
             }}
             className={`relative overflow-hidden backdrop-blur-sm ${className}`}
             onMouseMove={handleMouseMove}

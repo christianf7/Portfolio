@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Github, Linkedin, ArrowUpRight } from "lucide-react";
+import { Github, Linkedin, ArrowUpRight, Home, User, FolderKanban, Briefcase, Mail } from "lucide-react";
 import { Magnetic, GlitchText } from "~/components/effects";
 
 const NAV_ITEMS = [
-    { id: "hero", label: "Home", icon: "⌂" },
-    { id: "about", label: "About", icon: "◉" },
-    { id: "projects", label: "Work", icon: "◈" },
-    { id: "experience", label: "Exp", icon: "◇" },
-    { id: "contact", label: "Contact", icon: "✉" },
+    { id: "hero", label: "Home", Icon: Home },
+    { id: "about", label: "About", Icon: User },
+    { id: "projects", label: "Work", Icon: FolderKanban },
+    { id: "experience", label: "Exp", Icon: Briefcase },
+    { id: "contact", label: "Contact", Icon: Mail },
 ];
 
 export function FloatingDock() {
@@ -57,7 +57,7 @@ export function FloatingDock() {
                             <Magnetic key={item.id}>
                                 <button
                                     onClick={() => scrollTo(item.id)}
-                                    className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer ${
+                                    className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer ${
                                         activeSection === item.id
                                             ? "text-white"
                                             : "text-zinc-500 hover:text-zinc-300"
@@ -70,7 +70,7 @@ export function FloatingDock() {
                                             transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                         />
                                     )}
-                                    <span className="mr-1">{item.icon}</span>
+                                    <item.Icon className="w-4 h-4" />
                                     <span className="hidden sm:inline">{item.label}</span>
                                 </button>
                             </Magnetic>
@@ -97,7 +97,9 @@ export function TopNav() {
             animate={{ y: 0 }}
             transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-                scrolled ? "py-4" : "py-6"
+                scrolled
+                    ? "py-4 bg-zinc-950/70 backdrop-blur-xl border-b border-sky-500/10"
+                    : "py-6"
             }`}
         >
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">

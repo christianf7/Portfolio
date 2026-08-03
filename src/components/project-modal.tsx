@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,25 +12,36 @@ import {
     DialogTrigger,
 } from "~/components/ui/dialog";
 import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "~/components/ui/carousel";
-import { Badge } from "~/components/ui/badge";
-import { Separator } from "~/components/ui/separator";
-import {
     Github,
     ExternalLink,
-    Calendar,
+    Globe,
+    Clock,
     Users,
     Zap,
     Target,
+    X,
     ChevronLeft,
     ChevronRight,
-    X
+    TrendingUp,
+    Images,
+    ZoomIn,
+    Play,
 } from "lucide-react";
+
+export type MediaItem = string | { type: "youtube"; youtubeId: string; title?: string };
+
+function isYouTube(item: MediaItem): item is { type: "youtube"; youtubeId: string; title?: string } {
+    return typeof item === "object" && item.type === "youtube";
+}
+
+function getMediaSrc(item: MediaItem): string {
+    if (isYouTube(item)) return `https://img.youtube.com/vi/${item.youtubeId}/hqdefault.jpg`;
+    return `/${item}`;
+}
+
+function getYouTubeEmbedUrl(id: string): string {
+    return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+}
 
 export interface ProjectData {
     title: string;
@@ -38,11 +49,12 @@ export interface ProjectData {
     longDescription: string;
     tech: string[];
     tech_short?: string[];
-    github: string;
-    demo: string;
+    github?: string;
+    demo?: string;
+    visit?: string;
     featured?: boolean;
-    hero_image: string;
-    images: string[];
+    hero_image?: string;
+    images: MediaItem[];
     timeline: string;
     teamSize: string;
     role: string;
@@ -56,333 +68,550 @@ interface ProjectModalProps {
     children: React.ReactNode;
 }
 
-export function ProjectModal({ project, children }: ProjectModalProps) {
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+function LightboxViewer({
+    images,
+    title,
+    currentIndex,
+    onIndexChange,
+    onClose,
+}: {
+    images: MediaItem[];
+    title: string;
+    currentIndex: number;
+    onIndexChange: (i: number) => void;
+    onClose: () => void;
+}) {
+    const thumbStripRef = useRef<HTMLDivElement>(null);
+    const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+    const isScrollingRef = useRef(false);
+    const len = images.length;
+
+    const goNext = useCallback(() => {
+        onIndexChange((currentIndex + 1) % len);
+    }, [currentIndex, len, onIndexChange]);
+
+    const goPrev = useCallback(() => {
+        onIndexChange((currentIndex - 1 + len) % len);
+    }, [currentIndex, len, onIndexChange]);
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
-        };
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
-    const nextImage = useCallback(() => {
-        setCurrentImageIndex((prev) => (prev + 1) % project.images.length);
-    }, [project.images.length]);
-
-    const prevImage = useCallback(() => {
-        setCurrentImageIndex((prev) => (prev - 1 + project.images.length) % project.images.length);
-    }, [project.images.length]);
-
-    const openFullScreen = useCallback(() => setIsFullScreen(true), []);
-    const closeFullScreen = useCallback(() => setIsFullScreen(false), []);
-
-    useEffect(() => {
-        if (!isFullScreen) return;
-
         const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
                 e.stopPropagation();
                 e.preventDefault();
-                closeFullScreen();
-            } else if (e.key === 'ArrowRight') {
-                nextImage();
-            } else if (e.key === 'ArrowLeft') {
-                prevImage();
+                onClose();
+            } else if (e.key === "ArrowRight") {
+                goNext();
+            } else if (e.key === "ArrowLeft") {
+                goPrev();
             }
         };
+        window.addEventListener("keydown", handleKey, { capture: true });
+        return () => window.removeEventListener("keydown", handleKey, true);
+    }, [onClose, goNext, goPrev]);
 
-        window.addEventListener('keydown', handleKey, { capture: true });
-        return () => window.removeEventListener('keydown', handleKey, true);
-    }, [isFullScreen, closeFullScreen, nextImage, prevImage]);
+    // Infinite scroll: triplicate images, keep the middle set as the "real" one
+    // Snap back to center set when scroll settles to maintain illusion
+    const tripleImages = [...images, ...images, ...images];
+    const centerOffset = len;
 
     useEffect(() => {
-        if (!isFullScreen || !isMobile) return;
+        const strip = thumbStripRef.current;
+        if (!strip || len <= 1) return;
+        const targetChild = strip.children[centerOffset + currentIndex] as HTMLElement | undefined;
+        if (!targetChild) return;
+        const stripRect = strip.getBoundingClientRect();
+        const thumbRect = targetChild.getBoundingClientRect();
+        const scrollTarget = targetChild.offsetLeft - stripRect.width / 2 + thumbRect.width / 2;
+        isScrollingRef.current = true;
+        strip.scrollTo({ left: scrollTarget, behavior: "smooth" });
+        const timer = setTimeout(() => { isScrollingRef.current = false; }, 400);
+        return () => clearTimeout(timer);
+    }, [currentIndex, centerOffset, len]);
 
-        let touchStartX = 0;
-        let touchStartY = 0;
+    // On mount, jump (no animation) to center set
+    useEffect(() => {
+        const strip = thumbStripRef.current;
+        if (!strip || len <= 1) return;
+        const targetChild = strip.children[centerOffset + currentIndex] as HTMLElement | undefined;
+        if (!targetChild) return;
+        const stripRect = strip.getBoundingClientRect();
+        const thumbRect = targetChild.getBoundingClientRect();
+        const scrollTarget = targetChild.offsetLeft - stripRect.width / 2 + thumbRect.width / 2;
+        strip.scrollTo({ left: scrollTarget, behavior: "instant" });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-        const handleTouchStart = (e: TouchEvent) => {
-            if (e.touches[0]) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
+    // Snap scroll back to center set when user scrolls to edges
+    useEffect(() => {
+        const strip = thumbStripRef.current;
+        if (!strip || len <= 1) return;
+        const handleScroll = () => {
+            if (isScrollingRef.current) return;
+            const singleSetWidth = strip.scrollWidth / 3;
+            if (strip.scrollLeft < singleSetWidth * 0.15) {
+                strip.scrollLeft += singleSetWidth;
+            } else if (strip.scrollLeft > singleSetWidth * 1.85) {
+                strip.scrollLeft -= singleSetWidth;
             }
         };
+        strip.addEventListener("scroll", handleScroll, { passive: true });
+        return () => strip.removeEventListener("scroll", handleScroll);
+    }, [len]);
 
-        const handleTouchEnd = (e: TouchEvent) => {
-            if (!touchStartX || !touchStartY || !e.changedTouches[0]) return;
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    }, []);
 
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        const start = touchStartRef.current;
+        const end = e.changedTouches[0];
+        if (!start || !end) return;
+        const dx = start.x - end.clientX;
+        const dy = start.y - end.clientY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+            if (dx > 0) goNext();
+            else goPrev();
+        }
+        touchStartRef.current = null;
+    }, [goNext, goPrev]);
 
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-                if (diffX > 0) nextImage();
-                else prevImage();
-            } else if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) {
-                closeFullScreen();
-            }
+    return (
+        <div
+            style={{ zIndex: 99999, pointerEvents: "auto" }}
+            className="fixed inset-0"
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+        >
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-black/95 flex flex-col"
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 text-white p-2.5 sm:p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
+                >
+                    <X className="w-5 h-5" />
+                </button>
 
-            touchStartX = 0;
-            touchStartY = 0;
-        };
+                <div className="absolute top-5 left-5 z-10 text-zinc-500 text-sm font-mono">
+                    {currentIndex + 1} / {len}
+                </div>
 
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
-        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+                <div
+                    className="flex-1 flex items-center justify-center relative px-4 sm:px-16"
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {len > 1 && (
+                        <button
+                            onClick={goPrev}
+                            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 sm:p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer z-10"
+                        >
+                            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                    )}
 
-        return () => {
-            document.removeEventListener('touchstart', handleTouchStart);
-            document.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, [isFullScreen, isMobile, nextImage, prevImage, closeFullScreen]);
+                    <AnimatePresence mode="wait">
+                        {isYouTube(images[currentIndex]!) ? (
+                            <motion.div
+                                key={`yt-${currentIndex}`}
+                                className="w-full max-w-5xl aspect-video rounded-lg overflow-hidden"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <iframe
+                                    src={getYouTubeEmbedUrl((images[currentIndex] as { type: "youtube"; youtubeId: string }).youtubeId)}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    title={`${title} video`}
+                                />
+                            </motion.div>
+                        ) : (
+                            <motion.img
+                                key={currentIndex}
+                                src={`/${images[currentIndex]}`}
+                                alt={`${title} screenshot ${currentIndex + 1}`}
+                                className="max-w-full max-h-[calc(100vh-160px)] sm:max-h-[calc(100vh-180px)] object-contain rounded-lg select-none"
+                                draggable={false}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.15 }}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    {len > 1 && (
+                        <button
+                            onClick={goNext}
+                            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 sm:p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer z-10"
+                        >
+                            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                    )}
+                </div>
+
+                {len > 1 && (
+                    <div className="shrink-0 py-3 sm:py-4 px-4 sm:px-8">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <button
+                                onClick={goPrev}
+                                className="shrink-0 bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-full transition-all cursor-pointer"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <div
+                                ref={thumbStripRef}
+                                className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide"
+                                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                            >
+                                {tripleImages.map((item, i) => {
+                                    const realIndex = i % len;
+                                    const isActive = realIndex === currentIndex;
+                                    const isVideo = isYouTube(item);
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => onIndexChange(realIndex)}
+                                            className={`shrink-0 rounded-lg overflow-hidden transition-all duration-200 cursor-pointer relative ${
+                                                isActive
+                                                    ? "ring-2 ring-sky-500 opacity-100 scale-105"
+                                                    : "opacity-40 hover:opacity-70"
+                                            }`}
+                                        >
+                                            <img
+                                                src={getMediaSrc(item)}
+                                                alt={`Thumbnail ${realIndex + 1}`}
+                                                className="w-20 h-[52px] sm:w-28 sm:h-[72px] object-cover"
+                                                draggable={false}
+                                            />
+                                            {isVideo && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="bg-black/60 rounded-full p-1">
+                                                        <Play className="w-3 h-3 text-white fill-white" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <button
+                                onClick={goNext}
+                                className="shrink-0 bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-full transition-all cursor-pointer"
+                            >
+                                <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </motion.div>
+        </div>
+    );
+}
+
+function ImageGrid({
+    images,
+    title,
+    onLightboxChange,
+}: {
+    images: MediaItem[];
+    title: string;
+    onLightboxChange: (open: boolean) => void;
+}) {
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+    const openLightbox = useCallback((index: number) => {
+        setLightboxIndex(index);
+        onLightboxChange(true);
+    }, [onLightboxChange]);
+
+    const closeLightbox = useCallback(() => {
+        setLightboxIndex(null);
+        onLightboxChange(false);
+    }, [onLightboxChange]);
+
+    const visibleInitial = Math.min(5, images.length);
+    const hasMore = images.length > 5;
+    const remainingCount = images.length - 5;
+
+    const zoomOverlay = (
+        <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all duration-300 flex items-center justify-center">
+            <div className="opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 bg-white/10 backdrop-blur-sm rounded-full p-2.5">
+                <ZoomIn className="w-4 h-4 text-white" />
+            </div>
+        </div>
+    );
 
     return (
         <>
-            <Dialog>
-                <DialogTrigger asChild className="cursor-pointer">
-                    {children}
-                </DialogTrigger>
-                <DialogContent
-                    className="!max-w-[95vw] w-[95vw] max-h-[90vh] overflow-y-auto bg-zinc-950 border-zinc-800 p-4 sm:p-6 mx-auto sm:!max-w-[95vw]"
-                    showCloseButton={false}
-                >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
+            {/* Mobile: stacked layout / Desktop: 3+2 grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl overflow-hidden">
+                {/* Large hero image/video */}
+                {images[0] && (
+                    <div
+                        className="col-span-2 sm:col-span-3 relative group/img cursor-pointer overflow-hidden"
+                        onClick={() => openLightbox(0)}
                     >
-                        <DialogHeader className="space-y-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                    <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
-                                        {project.title}
-                                    </DialogTitle>
-                                    {project.featured && (
-                                        <Badge className="bg-sky-500/15 text-sky-300 border-sky-500/30 w-fit">
-                                            Featured
-                                        </Badge>
-                                    )}
-                                </div>
-                                <div className="flex gap-2 flex-shrink-0">
-                                    {project.github && (
-                                        <a
-                                            href={project.github}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-zinc-300 text-sm hover:border-zinc-600 hover:text-white transition-colors"
-                                        >
-                                            <Github className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Code</span>
-                                        </a>
-                                    )}
-                                    <a
-                                        href={project.demo}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors"
-                                    >
-                                        <ExternalLink className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Demo</span>
-                                    </a>
+                        <img
+                            src={getMediaSrc(images[0])}
+                            alt={`${title} screenshot 1`}
+                            className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                            style={{ aspectRatio: "16/10" }}
+                        />
+                        {isYouTube(images[0]) ? (
+                            <div className="absolute inset-0 bg-black/20 group-hover/img:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                                <div className="bg-black/60 backdrop-blur-sm rounded-full p-4 group-hover/img:scale-110 transition-transform">
+                                    <Play className="w-8 h-8 text-white fill-white" />
                                 </div>
                             </div>
-                            <DialogDescription className="text-base sm:text-lg text-zinc-400">
-                                {project.longDescription}
-                            </DialogDescription>
-                        </DialogHeader>
+                        ) : zoomOverlay}
+                    </div>
+                )}
 
-                        <div className="mt-6 space-y-6">
-                            <div className="rounded-2xl overflow-hidden border border-zinc-800">
-                                <Carousel className="w-full">
-                                    <CarouselContent>
-                                        {project.images.map((image, index) => (
-                                            <CarouselItem key={index}>
-                                                <div className="relative h-48 sm:h-64 md:h-80 lg:h-96">
-                                                    <div
-                                                        className="absolute inset-0 group/image cursor-zoom-in"
-                                                        onClick={() => {
-                                                            setCurrentImageIndex(index);
-                                                            openFullScreen();
-                                                        }}
-                                                    >
-                                                        <img
-                                                            src={`/${image}`}
-                                                            alt={`${project.title} screenshot ${index + 1}`}
-                                                            className="w-full h-full object-cover group-hover/image:scale-105 transition-transform duration-300"
-                                                            onError={(e) => {
-                                                                const target = e.target as HTMLImageElement;
-                                                                target.style.display = 'none';
-                                                            }}
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                                                            <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 bg-white/10 backdrop-blur-sm rounded-full p-3">
-                                                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                                                </svg>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    {project.images.length > 1 && (
-                                        <>
-                                            <CarouselPrevious className="left-2 sm:left-4" />
-                                            <CarouselNext className="right-2 sm:right-4" />
-                                        </>
-                                    )}
-                                </Carousel>
-                            </div>
+                {/* Small images: 2-col on mobile, 2x2 grid in right 2 cols on desktop */}
+                <div className="col-span-2 sm:col-span-2 grid grid-cols-2 sm:grid-cols-2 sm:grid-rows-2 gap-1.5 sm:gap-2">
+                    {images.slice(1, visibleInitial).map((item, i) => {
+                        const actualIndex = i + 1;
+                        const isLastSlot = actualIndex === 4 && hasMore;
+                        const isVideo = isYouTube(item);
 
-                            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                                <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        <Calendar className="w-5 h-5 text-sky-400" />
-                                        Project Details
-                                    </h3>
-                                    <div className="space-y-3 text-zinc-400">
-                                        <div className="flex justify-between">
-                                            <span>Timeline:</span>
-                                            <span className="text-white">{project.timeline}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Team Size:</span>
-                                            <span className="text-white">{project.teamSize}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>My Role:</span>
-                                            <span className="text-white">{project.role}</span>
+                        return (
+                            <div
+                                key={actualIndex}
+                                className="relative group/img cursor-pointer overflow-hidden aspect-video sm:aspect-auto"
+                                onClick={() => openLightbox(isLastSlot ? 4 : actualIndex)}
+                            >
+                                <img
+                                    src={getMediaSrc(item)}
+                                    alt={`${title} screenshot ${actualIndex + 1}`}
+                                    className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
+                                />
+                                {!isLastSlot && !isVideo && zoomOverlay}
+                                {!isLastSlot && isVideo && (
+                                    <div className="absolute inset-0 bg-black/20 group-hover/img:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                                        <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
+                                            <Play className="w-4 h-4 text-white fill-white" />
                                         </div>
                                     </div>
-                                    <Separator className="bg-zinc-800" />
-                                    <div>
-                                        <h4 className="text-white font-medium mb-2">Technologies Used:</h4>
-                                        <div className="flex gap-2 flex-wrap">
-                                            {project.tech.map((tech) => (
-                                                <span key={tech} className="px-3 py-1 bg-zinc-800 text-zinc-300 text-xs rounded-full border border-zinc-700/50">
-                                                    {tech}
-                                                </span>
-                                            ))}
-                                        </div>
+                                )}
+
+                                {isLastSlot && (
+                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1 group-hover/img:bg-black/70 transition-colors">
+                                        <Images className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                        <span className="text-white text-xs sm:text-sm font-medium">+{remainingCount} more</span>
                                     </div>
-                                </div>
-
-                                <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        <Zap className="w-5 h-5 text-emerald-400" />
-                                        Key Features
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {project.keyFeatures.map((feature, index) => (
-                                            <li key={index} className="text-zinc-400 flex items-start gap-2">
-                                                <span className="text-emerald-400 mt-1.5">•</span>
-                                                {feature}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                )}
                             </div>
-
-                            <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-                                <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        <Target className="w-5 h-5 text-orange-400" />
-                                        Challenges & Solutions
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {project.challenges.map((challenge, index) => (
-                                            <li key={index} className="text-zinc-400 flex items-start gap-2">
-                                                <span className="text-orange-400 mt-1.5">•</span>
-                                                {challenge}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm p-4 sm:p-6 space-y-4">
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        <Users className="w-5 h-5 text-blue-400" />
-                                        Outcomes & Impact
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {project.outcomes.map((outcome, index) => (
-                                            <li key={index} className="text-zinc-400 flex items-start gap-2">
-                                                <span className="text-blue-400 mt-1.5">•</span>
-                                                {outcome}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </DialogContent>
-            </Dialog>
+                        );
+                    })}
+                </div>
+            </div>
 
             {typeof document !== "undefined" && createPortal(
                 <AnimatePresence>
-                    {isFullScreen && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="fixed inset-0 bg-black/95 flex items-center justify-center"
-                            style={{ zIndex: 99999 }}
-                            onClick={closeFullScreen}
-                        >
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={currentImageIndex}
-                                    src={`/${project.images[currentImageIndex]}`}
-                                    alt={`${project.title} screenshot ${currentImageIndex + 1}`}
-                                    className="max-w-[85vw] max-h-[85vh] object-contain"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.25 }}
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </AnimatePresence>
-
-                            <button
-                                onClick={(e) => { e.stopPropagation(); closeFullScreen(); }}
-                                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
-
-                            {project.images.length > 1 && (
-                                <>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
-                                    >
-                                        <ChevronLeft className="w-6 h-6" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer"
-                                    >
-                                        <ChevronRight className="w-6 h-6" />
-                                    </button>
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
-                                        {currentImageIndex + 1} / {project.images.length}
-                                    </div>
-                                </>
-                            )}
-                        </motion.div>
+                    {lightboxIndex !== null && (
+                        <LightboxViewer
+                            images={images}
+                            title={title}
+                            currentIndex={lightboxIndex}
+                            onIndexChange={(i) => setLightboxIndex(i)}
+                            onClose={closeLightbox}
+                        />
                     )}
                 </AnimatePresence>,
                 document.body
             )}
         </>
+    );
+}
+
+export function ProjectModal({ project, children }: ProjectModalProps) {
+    const lightboxOpenRef = useRef(false);
+
+    const handleLightboxChange = useCallback((open: boolean) => {
+        lightboxOpenRef.current = open;
+    }, []);
+
+    const handleEscapeKeyDown = useCallback((e: KeyboardEvent) => {
+        if (lightboxOpenRef.current) {
+            e.preventDefault();
+        }
+    }, []);
+
+    const handlePointerDownOutside = useCallback((e: Event) => {
+        if (lightboxOpenRef.current) {
+            e.preventDefault();
+        }
+    }, []);
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild className="cursor-pointer">
+                {children}
+            </DialogTrigger>
+            <DialogContent
+                className="!max-w-[100vw] w-[100vw] sm:!max-w-[95vw] sm:w-[95vw] lg:!max-w-6xl max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-zinc-950 border-zinc-800/80 sm:rounded-xl rounded-none p-0 mx-auto"
+                showCloseButton={false}
+                onEscapeKeyDown={handleEscapeKeyDown}
+                onPointerDownOutside={handlePointerDownOutside}
+            >
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                >
+                    {/* Header */}
+                    <div className="sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-800/50 px-4 py-3 sm:px-8 sm:py-5">
+                        <DialogHeader className="space-y-0">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                    <DialogTitle className="text-lg sm:text-2xl font-bold text-white truncate">
+                                        {project.title}
+                                    </DialogTitle>
+                                    {project.featured && (
+                                        <span className="text-[10px] sm:text-[11px] font-medium px-2 sm:px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/20 shrink-0">
+                                            Featured
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                    {project.github && (
+                                        <a
+                                            href={project.github}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-zinc-700/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 transition-all"
+                                        >
+                                            <Github className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        </a>
+                                    )}
+                                    {project.visit && (
+                                        <a
+                                            href={project.visit}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-sky-500 text-white text-xs sm:text-sm font-medium hover:bg-sky-400 transition-colors"
+                                        >
+                                            <Globe className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                            Visit
+                                        </a>
+                                    )}
+                                    {project.demo && (
+                                    <a
+                                        href={project.demo}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white text-black text-xs sm:text-sm font-medium hover:bg-zinc-200 transition-colors"
+                                    >
+                                        <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                        Demo
+                                    </a>
+                                    )}
+                                </div>
+                            </div>
+                            <DialogDescription className="text-xs sm:text-base text-zinc-500 mt-1.5 sm:mt-2 leading-relaxed line-clamp-3 sm:line-clamp-none">
+                                {project.longDescription}
+                            </DialogDescription>
+                        </DialogHeader>
+                    </div>
+
+                    {/* Content */}
+                    <div className="px-3 py-4 sm:px-8 sm:py-6 space-y-4 sm:space-y-6">
+                        {/* Image Grid */}
+                        <ImageGrid
+                            images={project.images}
+                            title={project.title}
+                            onLightboxChange={handleLightboxChange}
+                        />
+
+                        {/* Meta row */}
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 p-2.5 sm:p-4 text-center">
+                                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 mx-auto mb-1 sm:mb-2" />
+                                <p className="text-white text-xs sm:text-sm font-medium">{project.timeline}</p>
+                                <p className="text-zinc-600 text-[10px] sm:text-xs mt-0.5">Timeline</p>
+                            </div>
+                            <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 p-2.5 sm:p-4 text-center">
+                                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 mx-auto mb-1 sm:mb-2" />
+                                <p className="text-white text-xs sm:text-sm font-medium">{project.teamSize}</p>
+                                <p className="text-zinc-600 text-[10px] sm:text-xs mt-0.5">Team</p>
+                            </div>
+                            <div className="rounded-xl bg-zinc-900/60 border border-zinc-800/40 p-2.5 sm:p-4 text-center">
+                                <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 mx-auto mb-1 sm:mb-2" />
+                                <p className="text-white text-xs sm:text-sm font-medium">{project.role}</p>
+                                <p className="text-zinc-600 text-[10px] sm:text-xs mt-0.5">Role</p>
+                            </div>
+                        </div>
+
+                        {/* Tech stack */}
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                            {project.tech.map((tech) => (
+                                <span key={tech} className="px-2 sm:px-3 py-0.5 sm:py-1 bg-zinc-800/60 text-zinc-400 text-[10px] sm:text-xs rounded-full border border-zinc-700/30">
+                                    {tech}
+                                </span>
+                            ))}
+                        </div>
+
+                        {/* Details grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/30 p-4 sm:p-5 space-y-2 sm:space-y-3">
+                                <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <h4 className="text-xs sm:text-sm font-semibold">Key Features</h4>
+                                </div>
+                                <ul className="space-y-1.5 sm:space-y-2">
+                                    {project.keyFeatures.map((feature, i) => (
+                                        <li key={i} className="text-zinc-400 text-xs sm:text-sm flex items-center gap-2">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-400/60 shrink-0" />
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/30 p-4 sm:p-5 space-y-2 sm:space-y-3">
+                                <div className="flex items-center gap-2 text-orange-400 mb-1">
+                                    <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <h4 className="text-xs sm:text-sm font-semibold">Challenges</h4>
+                                </div>
+                                <ul className="space-y-1.5 sm:space-y-2">
+                                    {project.challenges.map((challenge, i) => (
+                                        <li key={i} className="text-zinc-400 text-xs sm:text-sm flex items-center gap-2">
+                                            <span className="w-1 h-1 rounded-full bg-orange-400/60 shrink-0" />
+                                            {challenge}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <div className="rounded-xl bg-zinc-900/40 border border-zinc-800/30 p-4 sm:p-5 space-y-2 sm:space-y-3">
+                                <div className="flex items-center gap-2 text-sky-400 mb-1">
+                                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <h4 className="text-xs sm:text-sm font-semibold">Outcomes</h4>
+                                </div>
+                                <ul className="space-y-1.5 sm:space-y-2">
+                                    {project.outcomes.map((outcome, i) => (
+                                        <li key={i} className="text-zinc-400 text-xs sm:text-sm flex items-center gap-2">
+                                            <span className="w-1 h-1 rounded-full bg-sky-400/60 shrink-0" />
+                                            {outcome}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </DialogContent>
+        </Dialog>
     );
 }

@@ -47,7 +47,7 @@ export function ContactSection() {
                             animate={inView ? { opacity: 1, y: 0 } : {}}
                             transition={{ delay: 0.2 }}
                         >
-                            <Magnetic>
+                            <Magnetic strength={0.15}>
                                 <a
                                     href="mailto:christian@chrisfitz.dev"
                                     className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-semibold rounded-full hover:bg-zinc-200 transition-colors"

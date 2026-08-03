@@ -25,16 +25,8 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
             className="relative min-h-screen flex flex-col justify-center overflow-hidden"
             style={{ opacity }}
         >
-            <motion.div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-20 sm:py-32" style={{ y }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isLoaded ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: baseDelay, duration: 0.6 }}
-                    className="mb-8"
-                >
-                </motion.div>
-
-                <div className="mb-8">
+            <motion.div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24" style={{ y }}>
+                <div className="mb-6">
                     <h1 className="text-[clamp(2.5rem,10vw,10rem)] font-bold leading-[0.85] tracking-tighter">
                         {isLoaded && (
                             <>
@@ -62,7 +54,7 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isLoaded ? { opacity: 1, y: 0 } : {}}
                     transition={{ delay: baseDelay + 0.5, duration: 0.6 }}
-                    className="mb-8 sm:mb-12"
+                    className="mb-6 sm:mb-8"
                 >
                     <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-zinc-300 leading-relaxed max-w-[90vw] sm:max-w-xl">
                         Full-stack developer building things that work.
@@ -75,7 +67,7 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isLoaded ? { opacity: 1, y: 0 } : {}}
                     transition={{ delay: baseDelay + 0.7, duration: 0.6 }}
-                    className="flex flex-wrap gap-3 sm:gap-4 mb-12 sm:mb-20"
+                    className="flex flex-wrap gap-3 sm:gap-4 mb-8 sm:mb-12"
                 >
                     <Magnetic>
                         <button
@@ -115,21 +107,6 @@ export function HeroSection({ isLoaded }: { isLoaded: boolean }) {
                 </motion.div>
             </motion.div>
 
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={isLoaded ? { opacity: 1 } : {}}
-                transition={{ delay: baseDelay + 1.2, duration: 0.6 }}
-                className="absolute bottom-12 left-1/2 -translate-x-1/2"
-            >
-                <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="flex flex-col items-center gap-2 text-zinc-400"
-                >
-                    <span className="text-xs tracking-widest">SCROLL</span>
-                    <div className="w-px h-12 bg-gradient-to-b from-zinc-400 to-transparent" />
-                </motion.div>
-            </motion.div>
         </motion.section>
     );
 }
