@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { ArrowUpRight, Github } from "lucide-react";
 import { ProjectModal, type ProjectData } from "~/components/project-modal";
-import { ScrambleText } from "~/components/effects";
+import { ScrambleText, GlitchText } from "~/components/effects";
 
 const PROJECTS: ProjectData[] = [
     {
@@ -147,24 +147,7 @@ const PROJECTS: ProjectData[] = [
         keyFeatures: ["Invite-only signup system", "In-browser PDF streaming", "Folder tree browsing", "Favourites system", "Role-based access control", "Admin panel"],
         challenges: ["Secure file streaming without public URLs", "Invite-only auth flow", "Dynamic filesystem mirroring", "JWT session with role sync"],
         outcomes: ["Used by a group of students", "Secure resource distribution", "Zero public file exposure"],
-    },
-    {
-        title: "Embedded Actions",
-        description: "Custom GitHub Actions library for Discord webhooks",
-        longDescription:
-            "A custom GitHub Actions library that sends styled webhook notifications to Discord channels. Allows teams to get beautifully formatted build, deployment, and CI/CD notifications directly in their Discord servers with full customization of the webhook appearance and content.",
-        tech: ["TypeScript", "GitHub Actions", "Discord API", "Node.js", "Jest"],
-        tech_short: ["TypeScript", "GitHub Actions", "Discord API"],
-        github: "https://github.com/christianf7/Embedded-Actions",
-        images: [],
-        hero_image: "ea/ea.png",
-        timeline: "1 week",
-        teamSize: "Solo project",
-        role: "Developer",
-        keyFeatures: ["Custom Discord webhook styling", "GitHub Actions integration", "Configurable notification templates", "CI/CD event support", "TypeScript type safety"],
-        challenges: ["Discord API rate limiting", "Flexible template system", "Action input validation", "Cross-platform testing"],
-        outcomes: ["Open-source on GitHub", "1 star", "333+ commits", "Reusable across repositories"],
-    },
+    }
 ];
 
 export function ProjectsSection() {
@@ -184,50 +167,53 @@ export function ProjectsSection() {
                 <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     animate={inView ? { opacity: 1, y: 0 } : {}}
-                    className="text-4xl md:text-6xl font-bold text-white mb-16"
+                    className="text-4xl md:text-6xl font-bold text-white mb-16 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
                 >
-                    Selected <span className="text-zinc-500">projects</span>
+                    Selected <GlitchText className="text-sky-400">projects</GlitchText>
                 </motion.h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-px rounded-2xl overflow-hidden border border-zinc-800/60">
                     {PROJECTS.map((project, index) => (
                         <motion.div
                             key={project.title}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={inView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ delay: 0.1 * index }}
+                            transition={{ delay: 0.06 * index }}
                         >
                             <ProjectModal project={project}>
-                                <div className="group block w-full h-full rounded-2xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm cursor-pointer hover:border-zinc-700/50 transition-colors overflow-hidden">
-                                    <div className="relative h-40 sm:h-48 overflow-hidden">
+                                <div className="group relative flex items-stretch cursor-pointer bg-zinc-950/60 hover:bg-zinc-900/80 transition-all duration-300 border-b border-zinc-800/40 last:border-b-0">
+                                    <div className="hidden sm:block relative w-44 md:w-56 shrink-0 overflow-hidden">
                                         <img
                                             src={`/${project.hero_image}`}
                                             alt={project.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-                                        <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <span className="text-zinc-400 font-mono text-xs">0{index + 1}</span>
-                                                    <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-sky-400 transition-colors">
-                                                        <ScrambleText text={project.title} />
-                                                    </h3>
-                                                </div>
-                                                <p className="text-zinc-400 text-sm">{project.description}</p>
-                                            </div>
-                                            <div className="w-9 h-9 shrink-0 rounded-full bg-zinc-800/80 backdrop-blur-sm flex items-center justify-center group-hover:bg-sky-500 transition-colors">
-                                                <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-                                            </div>
-                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-zinc-950/80" />
                                     </div>
 
-                                    <div className="px-5 py-3 flex flex-wrap gap-2">
-                                        {(project.tech_short ?? project.tech.slice(0, 4)).map((tech) => (
-                                            <span key={tech} className="px-3 py-1 bg-zinc-800/80 text-zinc-400 text-xs rounded-full">
-                                                {tech}
-                                            </span>
-                                        ))}
+                                    <div className="flex-1 flex items-center justify-between gap-4 px-5 sm:px-6 py-5">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className="text-zinc-600 font-mono text-[11px] tabular-nums">
+                                                    {String(index + 1).padStart(2, "0")}
+                                                </span>
+                                                <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-sky-400 transition-colors truncate">
+                                                    <ScrambleText text={project.title} />
+                                                </h3>
+                                            </div>
+                                            <p className="text-zinc-500 text-sm leading-snug mb-2.5 line-clamp-1">{project.description}</p>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {(project.tech_short ?? project.tech.slice(0, 4)).map((tech) => (
+                                                    <span key={tech} className="px-2 py-0.5 bg-zinc-800/60 text-zinc-500 text-[11px] rounded-md font-mono">
+                                                        {tech}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="w-8 h-8 shrink-0 rounded-full border border-zinc-700/50 flex items-center justify-center group-hover:border-sky-500 group-hover:bg-sky-500/10 transition-all duration-300">
+                                            <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-sky-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
+                                        </div>
                                     </div>
                                 </div>
                             </ProjectModal>
@@ -235,33 +221,26 @@ export function ProjectsSection() {
                     ))}
 
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={inView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ delay: 0.1 * PROJECTS.length }}
+                        transition={{ delay: 0.06 * PROJECTS.length }}
                     >
                         <a
                             href="https://github.com/christianf7"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group block w-full h-full rounded-2xl bg-zinc-900/50 border border-zinc-800/50 border-dashed backdrop-blur-sm hover:border-sky-500/40 transition-all duration-300 overflow-hidden"
+                            className="group flex items-center gap-4 px-5 sm:px-6 py-5 bg-zinc-950/40 hover:bg-zinc-900/60 transition-all duration-300"
                         >
-                            <div className="flex flex-col items-center justify-center h-full min-h-[13rem] sm:min-h-[15.5rem] px-6 py-6 text-center gap-4">
-                                <div className="w-14 h-14 rounded-full bg-zinc-800/80 flex items-center justify-center group-hover:bg-sky-500/20 group-hover:scale-110 transition-all duration-300">
-                                    <Github className="w-7 h-7 text-zinc-500 group-hover:text-sky-400 transition-colors duration-300" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-sky-400 transition-colors">
-                                        <ScrambleText text="Want to see more?" />
-                                    </h3>
-                                    <p className="text-zinc-500 text-sm max-w-[20rem]">
-                                        Check out my GitHub for more projects, open-source contributions, and the source code for this portfolio.
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-2 text-zinc-500 group-hover:text-sky-400 transition-colors text-sm font-mono">
-                                    <span>github.com/christianf7</span>
-                                    <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                </div>
+                            <div className="w-10 h-10 rounded-full bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center group-hover:border-sky-500/50 group-hover:bg-sky-500/10 transition-all duration-300">
+                                <Github className="w-5 h-5 text-zinc-500 group-hover:text-sky-400 transition-colors duration-300" />
                             </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-sm font-semibold text-white group-hover:text-sky-400 transition-colors">
+                                    <ScrambleText text="Want to see more?" />
+                                </h3>
+                                <p className="text-zinc-600 text-xs font-mono">github.com/christianf7</p>
+                            </div>
+                            <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-sky-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300 shrink-0" />
                         </a>
                     </motion.div>
                 </div>

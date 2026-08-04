@@ -86,22 +86,29 @@ export function Magnetic({ children, className = "", strength = 0.4 }: { childre
 export function GlitchText({ children, className = "" }: { children: string; className?: string }) {
     return (
         <span className={`relative inline-block ${className}`}>
-            <span className="relative z-10">{children}</span>
             <span
-                className="absolute top-0 left-0 -z-10 text-sky-400 opacity-70"
+                className="relative z-10"
+                style={{
+                    textShadow: "0 0 20px rgba(56,189,248,0.4), 0 0 40px rgba(56,189,248,0.2)",
+                }}
+            >
+                {children}
+            </span>
+            <span
+                className="absolute top-0 left-0 z-0 text-sky-400 opacity-60"
                 style={{
                     clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 45%)",
-                    transform: "translate(-2px, -1px)",
+                    transform: "translate(-3px, -2px)",
                     animation: "glitch1 2.5s infinite linear alternate-reverse",
                 }}
             >
                 {children}
             </span>
             <span
-                className="absolute top-0 left-0 -z-10 text-blue-400 opacity-70"
+                className="absolute top-0 left-0 z-0 text-cyan-300 opacity-50"
                 style={{
                     clipPath: "polygon(0 55%, 100% 55%, 100% 100%, 0 100%)",
-                    transform: "translate(2px, 1px)",
+                    transform: "translate(3px, 2px)",
                     animation: "glitch2 3s infinite linear alternate-reverse",
                 }}
             >
