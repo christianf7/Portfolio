@@ -26,6 +26,24 @@ const PROJECTS: ProjectData[] = [
         outcomes: ["$5m+ processed in 1.5 years", "99.8% uptime", "Complex data relationships"],
     },
         {
+        title: "ScanPoint",
+        description: "Kiosk attendance SaaS with offline-first sync",
+        longDescription:
+            "A multi-app kiosk sign-in SaaS built as a Turborepo monorepo. ScanPoint lets organisations provision self-service kiosks that record attendance scans offline in IndexedDB, then converge automatically when connectivity returns. The platform spans four Next.js apps — a marketing site, an identity/auth service, an organisation dashboard, and a progressive web app for the kiosks themselves — backed by PostgreSQL with custom triggers for device synchronisation.",
+        tech: ["Next.js 16", "TypeScript", "tRPC 11", "Prisma 7", "PostgreSQL", "Better Auth", "Turborepo", "Docker"],
+        tech_short: ["Next.js", "TypeScript", "tRPC", "PostgreSQL"],
+        github: "https://github.com/christianf7/ScanPoint",
+        visit: "https://scanpoint.app",
+        hero_image: "sp/sp-00002.png",
+        images: ["sp/sp-00002.png", "sp/sp-00003.png", "sp/sp-00004.png", "sp/sp-00005.png", "sp/sp-00007.png", "sp/sp-00008.png", "sp/sp-00009.png", "sp/sp-00001.png", "sp/sp-00012.png", "sp/sp-00011.png", "sp/sp-00010.png"],
+        timeline: "Ongoing",
+        teamSize: "Solo project",
+        role: "Full-Stack Developer",
+        keyFeatures: ["Offline-first kiosk PWA with IndexedDB", "Multi-app Turborepo monorepo", "Device provisioning with single-use codes", "Automatic offline-to-online sync", "Organisation-scoped dashboard", "Docker Compose production deployment"],
+        challenges: ["Offline-first architecture with eventual consistency", "Cross-app shared authentication cookies", "Device vs human identity separation", "PostgreSQL trigger-based sync"],
+        outcomes: ["Four coordinated Next.js apps", "Zero-downtime kiosk operation", "Production Docker deployment with Cloudflare Tunnel"],
+    },
+    {
         title: "Relio - Tinder for Events",
         description: "Networking shouldn't feel like paperwork!",
         longDescription:
