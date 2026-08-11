@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { GlitchText } from "~/components/effects";
+import { MapPin, Calendar } from "lucide-react";
 
 const EXPERIENCES = [
     {
@@ -12,6 +13,7 @@ const EXPERIENCES = [
         year: "2023",
         description: "Building websites and apps for startups and small businesses. 15+ projects, 100% happy clients.",
         active: true,
+        highlights: ["15+ projects", "100% satisfaction"],
     },
     {
         role: "IT Lead",
@@ -20,6 +22,7 @@ const EXPERIENCES = [
         year: "2024",
         description: "Running IT infrastructure, building custom tools, and managing the tech stack for a growing brand employing 15+ people, with distribution across 300+ venues/locations.",
         active: true,
+        highlights: ["15+ team", "300+ venues"],
     },
     {
         role: "Assistant Customer Service Manager",
@@ -28,6 +31,7 @@ const EXPERIENCES = [
         year: "2021",
         description: "Managing front-end operations. Became a supervisor at 17, then a manager at 19. Often leading the whole store on nights and weekends.",
         active: true,
+        highlights: ["Supervisor at 17", "Manager at 19"],
     },
     {
         role: "Java Developer",
@@ -36,6 +40,7 @@ const EXPERIENCES = [
         year: "2020",
         description: "Built Minecraft plugins used by hundreds of servers. Learned a lot about open source, and building in teams using GIT and CI.",
         active: false,
+        highlights: ["Open source", "Hundreds of servers"],
     },
 ];
 
@@ -61,87 +66,66 @@ export function ExperienceSection() {
                     Where I&apos;ve <GlitchText className="text-sky-400">worked</GlitchText>
                 </motion.h2>
 
-                <div className="relative ml-4 sm:ml-0">
-                    {/* Timeline spine */}
-                    <div className="absolute left-0 sm:left-24 top-0 bottom-0 w-px">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {EXPERIENCES.map((exp, index) => (
                         <motion.div
-                            className="w-full h-full bg-gradient-to-b from-sky-500 via-sky-500/40 to-zinc-800/20"
-                            initial={{ scaleY: 0 }}
-                            animate={inView ? { scaleY: 1 } : {}}
-                            transition={{ duration: 1.2, ease: [0.33, 1, 0.68, 1] }}
-                            style={{ transformOrigin: "top" }}
-                        />
-                    </div>
+                            key={exp.company}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={inView ? { opacity: 1, y: 0 } : {}}
+                            transition={{ delay: 0.12 * index + 0.2 }}
+                            className="group relative"
+                        >
+                            <div className="relative overflow-hidden rounded-2xl bg-zinc-900/50 border border-zinc-800/50 p-6 h-full transition-all duration-500 hover:border-zinc-700/60 hover:bg-zinc-900/70">
+                                {/* Subtle corner glow on hover */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/0 group-hover:bg-sky-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 transition-all duration-700" />
 
-                    <div className="space-y-10">
-                        {EXPERIENCES.map((exp, index) => (
-                            <motion.div
-                                key={exp.company}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={inView ? { opacity: 1, y: 0 } : {}}
-                                transition={{ delay: 0.15 * index + 0.3 }}
-                                className="relative flex items-start group"
-                            >
-                                {/* Year label - desktop */}
-                                <div className="hidden sm:block w-24 shrink-0 pt-1 pr-6 text-right">
-                                    <span className="text-zinc-600 font-mono text-xs group-hover:text-sky-400/60 transition-colors">
-                                        {exp.year}
-                                    </span>
-                                </div>
-
-                                {/* Timeline node */}
-                                <div className="absolute left-0 sm:left-24 top-2 -translate-x-1/2 z-10">
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={inView ? { scale: 1 } : {}}
-                                        transition={{ delay: 0.15 * index + 0.4, type: "spring", stiffness: 400, damping: 15 }}
-                                        className="relative"
-                                    >
-                                        <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${
-                                            exp.active
-                                                ? "border-sky-400 bg-sky-400/20 group-hover:bg-sky-400 group-hover:shadow-[0_0_12px_rgba(56,189,248,0.5)]"
-                                                : "border-zinc-600 bg-zinc-900 group-hover:border-zinc-400"
-                                        }`} />
+                                <div className="relative">
+                                    {/* Header: role + status */}
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                        <h3 className="text-lg font-semibold text-white group-hover:text-sky-400 transition-colors duration-300 leading-tight">
+                                            {exp.role}
+                                        </h3>
                                         {exp.active && (
-                                            <div className="absolute inset-0 w-3 h-3 rounded-full bg-sky-400/30 animate-ping" style={{ animationDuration: "3s" }} />
-                                        )}
-                                    </motion.div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="flex-1 pl-6 sm:pl-6 pb-2">
-                                    <div className="rounded-lg px-4 py-3 -mx-4 group-hover:bg-zinc-900/50 transition-all duration-300">
-                                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-1">
-                                            <h3 className="text-base font-semibold text-white group-hover:text-sky-400 transition-colors">
-                                                {exp.role}
-                                            </h3>
-                                            <span className="text-zinc-600 font-mono text-[11px] sm:hidden">{exp.period}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-sky-400/60 text-sm">{exp.company}</span>
-                                            {exp.active && (
-                                                <span className="px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-emerald-400 bg-emerald-400/10 rounded">
-                                                    current
+                                            <span className="relative flex items-center gap-1.5 shrink-0 mt-1">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" style={{ animationDuration: "2s" }} />
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                                                 </span>
-                                            )}
-                                            <span className="hidden sm:inline text-zinc-700 text-xs font-mono ml-auto">{exp.period}</span>
-                                        </div>
-                                        <p className="text-zinc-500 text-sm leading-relaxed">{exp.description}</p>
+                                                <span className="text-emerald-400 text-[10px] font-mono uppercase tracking-wider">Active</span>
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Company + period */}
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
+                                        <span className="flex items-center gap-1.5 text-sky-400/70 text-sm font-medium">
+                                            <MapPin className="w-3 h-3" />
+                                            {exp.company}
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-zinc-600 text-xs font-mono">
+                                            <Calendar className="w-3 h-3" />
+                                            {exp.period}
+                                        </span>
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-zinc-400 text-sm leading-relaxed mb-4">{exp.description}</p>
+
+                                    {/* Highlight chips */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {exp.highlights.map((h) => (
+                                            <span
+                                                key={h}
+                                                className="px-2.5 py-1 bg-zinc-800/60 text-zinc-500 text-[11px] rounded-lg font-mono border border-zinc-800/40 group-hover:border-zinc-700/50 group-hover:text-zinc-400 transition-colors duration-300"
+                                            >
+                                                {h}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Timeline end cap */}
-                    <motion.div
-                        className="absolute left-0 sm:left-24 bottom-0 -translate-x-1/2"
-                        initial={{ opacity: 0 }}
-                        animate={inView ? { opacity: 1 } : {}}
-                        transition={{ delay: 1.2 }}
-                    >
-                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-                    </motion.div>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
             </div>
         </section>

@@ -96,10 +96,10 @@ export function TopNav() {
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+            className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-500 ${
                 scrolled
-                    ? "py-4 bg-zinc-950/70 backdrop-blur-xl border-b border-sky-500/10"
-                    : "py-6"
+                    ? "py-4 bg-zinc-950/80 backdrop-blur-md border-zinc-800/30"
+                    : "py-6 border-transparent bg-transparent"
             }`}
         >
             <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">

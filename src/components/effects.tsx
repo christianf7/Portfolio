@@ -122,10 +122,11 @@ export function Marquee({ children, speed = 50 }: { children: React.ReactNode; s
     return (
         <div className="relative overflow-hidden whitespace-nowrap">
             <motion.div
-                className="inline-flex"
-                animate={{ x: ["0%", "-50%"] }}
+                className="flex w-max gap-0"
+                animate={{ x: ["0%", "-33.333%"] }}
                 transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
             >
+                {children}
                 {children}
                 {children}
             </motion.div>
